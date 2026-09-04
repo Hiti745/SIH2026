@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useEnrollment } from '@/hooks/useEnrollment';
-import { skills, recommendedCourses } from '@/data/courses';
-import type { QuizAttempt, CompetencyAssessment } from '@/types';
+import { skills as defaultSkills, recommendedCourses } from '@/data/courses';
+import type { QuizAttempt, CompetencyAssessment, Skill } from '@/types';
 import {
   BookOpen,
   CheckCircle,
@@ -64,11 +64,30 @@ export default function Dashboard() {
     ? Math.round(quizAttempts.reduce((sum, a) => sum + (a.score / a.total_questions) * 100, 0) / quizAttempts.length)
     : 0;
 
-  const strongSkills = skills.filter((s) => s.percent >= 70);
-  const weakSkills = skills.filter((s) => s.percent < 60);
-  const overallCompetency = Math.round(skills.reduce((sum, s) => sum + s.percent, 0) / skills.length);
+  const skillColors: Record<string, string> = {
+    'Statistical Analysis': 'bg-emerald-500',
+    'Data Visualization': 'bg-blue-500',
+    'Survey Methodology': 'bg-emerald-500',
+    'Machine Learning': 'bg-amber-500',
+    'Python Programming': 'bg-blue-500',
+  };
 
-  const maxScore = Math.max(...skills.map((s) => s.percent), 100);
+  const displaySkills: Skill[] = assessments.length > 0
+    ? assessments.map((a) => ({
+        name: a.skill_name,
+        level: a.score >= 70 ? `Advanced - ${a.score}%` : a.score >= 50 ? `Intermediate - ${a.score}%` : `Beginner - ${a.score}%`,
+        percent: a.score,
+        color: skillColors[a.skill_name] ?? 'bg-blue-500',
+      }))
+    : defaultSkills;
+
+  const strongSkills = displaySkills.filter((s) => s.percent >= 70);
+  const weakSkills = displaySkills.filter((s) => s.percent < 60);
+  const overallCompetency = displaySkills.length > 0
+    ? Math.round(displaySkills.reduce((sum, s) => sum + s.percent, 0) / displaySkills.length)
+    : 0;
+
+  const maxScore = Math.max(...displaySkills.map((s) => s.percent), 100);
 
   return (
     <section className="min-h-[calc(100vh-4rem)] bg-gray-50 py-8">
@@ -102,7 +121,12 @@ export default function Dashboard() {
 
             {/* Bar Chart */}
             <div className="space-y-4">
-              {skills.map((skill) => (
+              {displaySkills.length === 0 ? (
+                <p className="py-4 text-center text-sm text-gray-500">
+                  Take the pre-assessment during sign-up to see your competency scores here.
+                </p>
+              ) : null}
+              {displaySkills.map((skill) => (
                 <div key={skill.name}>
                   <div className="mb-1.5 flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-700">{skill.name}</span>
@@ -132,7 +156,7 @@ export default function Dashboard() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-gray-500">Take an assessment to identify strengths.</p>
+                  <p className="text-sm text-gray-500">No strong areas identified yet.</p>
                 )}
               </div>
               <div className="rounded-xl bg-amber-50 p-4">
@@ -147,7 +171,7 @@ export default function Dashboard() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-gray-500">No weak areas detected.</p>
+                  <p className="text-sm text-gray-500">No weak areas detected. Great job!</p>
                 )}
               </div>
             </div>
