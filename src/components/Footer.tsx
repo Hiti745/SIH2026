@@ -38,10 +38,10 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-3">Contact Info</h3>
             <p className="flex items-center gap-2 text-gray-400 mb-1">
-              <Mail className="h-4 w-4" /> info@saamrthya.ai
+              <Mail className="h-4 w-4" /> hitikhatod@gmail.com
             </p>
             <p className="flex items-center gap-2 text-gray-400">
-              <Phone className="h-4 w-4" /> +91 11 1234 5678
+              <Phone className="h-4 w-4" /> +91 93433 64372
             </p>
           </div>
         </div>
