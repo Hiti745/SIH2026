@@ -127,9 +127,9 @@ export default function Contact() {
             <div className="space-y-4">
               <div className="rounded-2xl bg-white p-8 shadow-sm">
                 <h2 className="mb-6 text-2xl font-bold text-gray-900">Contact Information</h2>
-                <InfoCard icon={MapPin} title="Address" lines={['Ministry of Statistics and Programme Implementation', 'Sardar Patel Bhawan, Sansad Marg', 'New Delhi - 110001, India']} />
-                <InfoCard icon={Mail} title="Email" lines={['info@saamrthya.ai', 'support@saamrthya.ai']} />
-                <InfoCard icon={Phone} title="Phone" lines={['General: +91 11 1234 5678', 'Support: +91 11 8765 4321']} />
+                <InfoCard icon={MapPin} title="Address" lines={['Medicaps University', 'Pitampur, Rau', 'Indore - 453331, India']} />
+                <InfoCard icon={Mail} title="Email" lines={['support@saamrthya.ai','hitikhatod@gmail.com']} />
+                <InfoCard icon={Phone} title="Phone" lines={['General: +91 93433 64372', 'Support: +91 62617 98473']} />
                 <InfoCard icon={Clock} title="Working Hours" lines={['Mon - Fri: 9:00 AM - 6:00 PM', 'Saturday: 9:00 AM - 1:00 PM', 'Sunday: Closed']} />
               </div>
             </div>
