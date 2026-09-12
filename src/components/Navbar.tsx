@@ -1,12 +1,13 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import { GraduationCap, Menu, X, LogOut, User } from 'lucide-react';
+import { GraduationCap, Menu, X, LogOut, Layers, Video } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
@@ -18,8 +19,10 @@ export default function Navbar() {
         { to: '/', label: 'Home' },
         { to: '/dashboard', label: 'Dashboard' },
         { to: '/courses', label: 'Courses' },
-        { to: '/quiz-generator', label: 'Quiz Generator' },
         { to: '/recommended', label: 'Recommended' },
+        { to: '/flashcards', label: 'Flashcards' },
+        { to: '/quiz-generator', label: 'Quiz Generator' },
+        { to: '/video-assessment', label: 'Video Assessment' },
         { to: '/chatbot', label: 'AI Assistant' },
         { to: '/profile', label: 'Profile' },
       ]
@@ -30,28 +33,42 @@ export default function Navbar() {
         { to: '/contact', label: 'Contact' },
       ];
 
+  const isActive = (to: string) =>
+    to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
+
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-xl font-bold text-blue-600">
+          <Link to="/" className="flex flex-shrink-0 items-center gap-2 text-xl font-bold text-blue-600">
             <GraduationCap className="h-8 w-8" />
             <span>Saamrthya AI</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-6">
+          {/* Desktop nav — scrollable if too many links */}
+          <div className="hidden md:flex items-center gap-1 overflow-x-auto">
             {navLinks.map((link) => (
-              <NavLink key={link.to} to={link.to} label={link.label} />
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`flex-shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  isActive(link.to)
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                }`}
+              >
+                {link.label}
+              </Link>
             ))}
             {user ? (
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-1.5 rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600"
+                className="ml-2 flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-red-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-600"
               >
                 <LogOut className="h-4 w-4" /> Logout
               </button>
             ) : (
-              <>
+              <div className="ml-2 flex gap-2">
                 <Link
                   to="/login"
                   className="rounded-lg border-2 border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 transition hover:bg-blue-600 hover:text-white"
@@ -64,7 +81,7 @@ export default function Navbar() {
                 >
                   Sign Up
                 </Link>
-              </>
+              </div>
             )}
           </div>
 
@@ -76,13 +93,17 @@ export default function Navbar() {
 
       {open && (
         <div className="md:hidden border-t border-gray-200 bg-white">
-          <div className="flex flex-col gap-2 px-4 py-4">
+          <div className="flex flex-col gap-1 px-4 py-4">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100"
+                className={`rounded-lg px-3 py-2.5 text-sm font-medium ${
+                  isActive(link.to)
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
               >
                 {link.label}
               </Link>
@@ -90,12 +111,12 @@ export default function Navbar() {
             {user ? (
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-2 rounded-lg bg-red-500 px-3 py-2 text-white"
+                className="mt-2 flex items-center gap-2 rounded-lg bg-red-500 px-3 py-2.5 text-white"
               >
                 <LogOut className="h-4 w-4" /> Logout
               </button>
             ) : (
-              <div className="flex gap-2">
+              <div className="mt-2 flex gap-2">
                 <Link
                   to="/login"
                   onClick={() => setOpen(false)}
@@ -116,16 +137,5 @@ export default function Navbar() {
         </div>
       )}
     </nav>
-  );
-}
-
-function NavLink({ to, label }: { to: string; label: string }) {
-  return (
-    <Link
-      to={to}
-      className="text-gray-700 font-medium transition hover:text-blue-600"
-    >
-      {label}
-    </Link>
   );
 }

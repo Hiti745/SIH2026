@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { generateQuizFromText, type GeneratedQuestion } from '@/lib/quizGenerator';
+import ProctorWrapper from '@/components/ProctorWrapper';
 import {
   Upload,
   FileText,
@@ -14,9 +15,10 @@ import {
   ChevronRight,
   Trash2,
   Plus,
+  ShieldCheck,
 } from 'lucide-react';
 
-type Phase = 'input' | 'generating' | 'quiz' | 'results';
+type Phase = 'input' | 'generating' | 'proctor_setup' | 'quiz' | 'results';
 
 interface SavedQuiz {
   id: string;
@@ -53,6 +55,7 @@ export default function QuizGenerator() {
   const [error, setError] = useState<string | null>(null);
   const [savedQuizzes, setSavedQuizzes] = useState<SavedQuiz[]>([]);
   const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
+  const [proctorStarted, setProctorStarted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchSavedQuizzes = useCallback(async () => {
@@ -125,7 +128,7 @@ export default function QuizGenerator() {
     setAnswers({});
     setScore(0);
     setLoading(false);
-    setPhase('quiz');
+    setPhase('proctor_setup');
 
     if (user) {
       const title = quizTitle || 'Generated Quiz';
@@ -185,6 +188,7 @@ export default function QuizGenerator() {
     setInputText('');
     setQuizTitle('');
     setActiveQuizId(null);
+    setProctorStarted(false);
     setError(null);
   };
 
@@ -201,7 +205,8 @@ export default function QuizGenerator() {
       setActiveQuizId(quizId);
       const quiz = savedQuizzes.find((q) => q.id === quizId);
       setQuizTitle(quiz?.title ?? 'Saved Quiz');
-      setPhase('quiz');
+      setProctorStarted(false);
+      setPhase('proctor_setup');
     }
   };
 
@@ -380,7 +385,90 @@ export default function QuizGenerator() {
           </div>
         )}
 
-        {/* Quiz Phase */}
+        {/* Proctor Setup Phase */}
+        {phase === 'proctor_setup' && (
+          <ProctorWrapper
+            assessmentType="quiz"
+            assessmentRef={activeQuizId ?? undefined}
+            onStart={() => setProctorStarted(true)}
+            started={proctorStarted}
+            onComplete={handleReset}
+          >
+            <div className="space-y-6 py-4">
+              <div className="flex items-center justify-between rounded-2xl bg-white p-5 shadow-sm">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">{quizTitle}</h2>
+                  <p className="text-sm text-gray-500">
+                    {questions.length} questions • Answered: {Object.keys(answers).length}/{questions.length}
+                  </p>
+                </div>
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-1.5 rounded-lg border-2 border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:border-gray-300"
+                >
+                  <RotateCcw className="h-4 w-4" /> Start Over
+                </button>
+              </div>
+
+              <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+                <div
+                  className="h-full rounded-full bg-blue-600 transition-all duration-300"
+                  style={{ width: `${(Object.keys(answers).length / questions.length) * 100}%` }}
+                />
+              </div>
+
+              {questions.map((q, qIdx) => {
+                const userAnswer = answers[qIdx];
+                return (
+                  <div key={qIdx} className="rounded-2xl bg-white p-6 shadow-sm">
+                    <div className="mb-4 flex gap-3">
+                      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100 text-sm font-bold text-blue-700">
+                        {qIdx + 1}
+                      </span>
+                      <h3 className="text-base font-semibold text-gray-900">{q.question_text}</h3>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {(['a', 'b', 'c', 'd'] as const).map((letter) => {
+                        const optionText = q[`option_${letter}` as keyof GeneratedQuestion] as string;
+                        const isSelected = userAnswer === letter;
+                        return (
+                          <button
+                            key={letter}
+                            onClick={() => handleAnswer(qIdx, letter)}
+                            disabled={!!userAnswer}
+                            className={`flex items-start gap-3 rounded-xl border-2 p-4 text-left text-sm transition ${
+                              isSelected
+                                ? 'border-blue-600 bg-blue-50 text-gray-900'
+                                : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                            } ${userAnswer && userAnswer !== letter ? 'opacity-50' : ''}`}
+                          >
+                            <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                              isSelected ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+                            }`}>
+                              {letter.toUpperCase()}
+                            </span>
+                            <span className="text-gray-700">{optionText}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+
+              <button
+                onClick={handleSubmit}
+                disabled={!allAnswered}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-lg font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Trophy className="h-5 w-5" />
+                Submit Quiz
+              </button>
+            </div>
+          </ProctorWrapper>
+        )}
+
+        {/* Quiz Phase (legacy, now handled by proctor_setup) */}
         {phase === 'quiz' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between rounded-2xl bg-white p-5 shadow-sm">

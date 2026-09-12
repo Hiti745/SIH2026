@@ -13,6 +13,8 @@ import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 import Dashboard from '@/pages/Dashboard';
 import QuizGenerator from '@/pages/QuizGenerator';
+import Flashcards from '@/pages/Flashcards';
+import VideoAssessment from '@/pages/VideoAssessment';
 
 export default function App() {
   return (
@@ -63,6 +65,22 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <QuizGenerator />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/flashcards"
+              element={
+                <ProtectedRoute>
+                  <Flashcards />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/video-assessment"
+              element={
+                <ProtectedRoute>
+                  <VideoAssessment />
                 </ProtectedRoute>
               }
             />
